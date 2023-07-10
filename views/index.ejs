@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AbTak Live Voting</title>
+    <script
+      src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+      integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="vote-container">
+        <h2>Live Voting Share:</h2>
+        <ul id="votingShareList">
+          <li id="pA"></li>
+          <li id="pB"></li>
+          <li id="pC"></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2>Vote</h2>
+        <form action="">
+          <label for="voterID">Voter ID :</label>
+          <input type="text" id="voterID" required />
+          <label for="party">Party :</label>
+          <select id="party">
+            <option value="A">A Party</option>
+            <option value="B">B Party</option>
+            <option value="C">C Party</option>
+          </select>
+          <button type="submit" id="voteButton">Vote</button>
+          <p id="error"></p>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const socket = io();
+      const pA = document.getElementById("pA");
+      const pB = document.getElementById("pB");
+      const pC = document.getElementById("pC");
+      const voterIDInput = document.getElementById("voterID");
+      const partySelect = document.getElementById("party");
+      const voteButton = document.getElementById("voteButton");
+      const errorText = document.getElementById("error");
+
+      socket.on("initialVoteCounts", (voteCounts) => {
+        updateVoteCounts(voteCounts);
+      });
+
+      socket.on("updateVoteCounts", (voteCounts) => {
+        updateVoteCounts(voteCounts);
+      });
+
+      socket.on("voteError", (message) => {
+        errorText.textContent = message;
+      });
+
+      voteButton.addEventListener("click", (e) => {
+        const voterID = voterIDInput.value;
+        const party = partySelect.value;
+
+        socket.emit("vote", voterID, party);
+      });
+
+      function updateVoteCounts(voteCounts) {
+
+        const partyAVoteCount = voteCounts.find((v) => v.party === "A").count;
+        const partyBVoteCount = voteCounts.find((v) => v.party === "B").count;
+        const partyCVoteCount = voteCounts.find((v) => v.party === "C").count;
+        // const totalVotes = voteShares.reduce((total, vote) => total + vote.count, 0);
+        pA.textContent = `A party: ${partyAVoteCount} votes`;
+        pB.textContent = `B party: ${partyBVoteCount} votes`;
+        pC.textContent = `C party: ${partyCVoteCount} votes`;
+
+        errorText.textContent = "";
+      }
+    </script>
+  </body>
+</html>
